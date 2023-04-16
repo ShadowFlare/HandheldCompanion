@@ -5,6 +5,7 @@ using ControllerCommon.Inputs;
 using ControllerCommon.Managers;
 using HandheldCompanion.Actions;
 using HandheldCompanion.Controls;
+using HandheldCompanion.Managers.Desktop;
 using HandheldCompanion.Views;
 using Newtonsoft.Json;
 using System;
@@ -30,6 +31,7 @@ namespace HandheldCompanion.Managers
         };
 
         private static Layout currentLayout;
+        private static ScreenRotation currentOrientation = new();
 
         private static ControllerState outputState = new();
 
@@ -74,6 +76,8 @@ namespace HandheldCompanion.Managers
             ProfileManager.Discarded += ProfileManager_Discarded;
 
             SettingsManager.SettingValueChanged += SettingsManager_SettingValueChanged;
+
+            SystemManager.DisplayOrientationChanged += DesktopManager_DisplayOrientationChanged;
         }
 
         public static void Start()
@@ -255,6 +259,11 @@ namespace HandheldCompanion.Managers
             }
         }
 
+        private static void DesktopManager_DisplayOrientationChanged(ScreenRotation rotation)
+        {
+            currentOrientation = rotation;
+        }
+
         public static ControllerState MapController(ControllerState controllerState)
         {
             if (currentLayout is null)
@@ -347,6 +356,8 @@ namespace HandheldCompanion.Managers
                     case ActionType.Joystick:
                         {
                             AxisActions aAction = action as AxisActions;
+                            if (aAction.AutoRotate)
+                                aAction.SetAutoOrientation(currentOrientation);
                             aAction.Execute(InLayout);
 
                             // read output axis
@@ -362,6 +373,8 @@ namespace HandheldCompanion.Managers
                     case ActionType.Mouse:
                         {
                             MouseActions mAction = action as MouseActions;
+                            if (mAction.AutoRotate)
+                                mAction.SetAutoOrientation(currentOrientation);
 
                             // This buttonState check won't work here if UpdateInputs is event based, might need a rework in the future
                             bool touched = false;
