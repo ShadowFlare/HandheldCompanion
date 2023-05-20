@@ -55,8 +55,11 @@ namespace HandheldCompanion.Managers
 
         private static void RTSS_Unhooked(int processId)
         {
-            OnScreenDisplay.Update("");
-            OnScreenDisplay.Dispose();
+            if (OnScreenDisplay is not null)
+            {
+                OnScreenDisplay.Update("");
+                OnScreenDisplay.Dispose();
+            }
 
             // reset OSD id
             OnScreenId = 0;
@@ -311,7 +314,8 @@ namespace HandheldCompanion.Managers
                             RefreshTimer.Stop();
 
                             // clear UI on stop
-                            OnScreenDisplay.Update("");
+                            if (OnScreenDisplay is not null)
+                                OnScreenDisplay.Update("");
                             OnScreenId = 0;
                         }
                     }
